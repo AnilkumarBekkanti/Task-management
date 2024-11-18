@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tasks</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>My Tasks</h2>
+            <div>
+                <a href="{% url 'category_list' %}" class="btn btn-secondary">Back to Categories</a>
+                <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+            </div>
+        </div>
+
+        {% if tasks %}
+            <table class="table table-striped" id="taskTable">
+                <thead>
+                    <tr>
+                        <th>Task Name</th>
+                        <th>Category</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Time Left</th>
+                        <th>Priority 
+                            <button class="btn btn-link" onclick="sortByPriority()">↑↓</button>
+                        </th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.name }}</td>
+                        <td>{{ task.category.name }}</td>
+                        <td>{{ task.start_date|date:"Y-m-d H:i" }}</td>
+                        <td>{{ task.end_date|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <div id="countdown_{{ task.id }}" class="countdown-timer"></div>
+                        </td>
+                        <td>{{ task.priority }}</td>
+                        <td>
+                            <span id="status_{{ task.id }}" class="badge"></span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#taskModal_{{ task.id }}">
+                                View Details
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="alert alert-info">
+                No tasks assigned to you yet.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Task Details Modals -->
+    {% for task in tasks %}
+    <div class="modal fade" id="taskModal_{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel_{{ task.id }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalLabel_{{ task.id }}">Task Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ task.name }}</h5>
+                            <p class="card-text"><strong>Category:</strong> {{ task.category.name }}</p>
+                            <p class="card-text"><strong>Description:</strong> {{ task.description }}</p>
+                            <p class="card-text"><strong>Location:</strong> {{ task.location }}</p>
+                            <p class="card-text"><strong>Organizer:</strong> {{ task.organizer }}</p>
+                            <p class="card-text"><strong>Priority:</strong> {{ task.priority }}</p>
+                            <p class="card-text"><strong>Start Date:</strong> {{ task.start_date|date:"Y-m-d H:i" }}</p>
+                            <p class="card-text"><strong>End Date:</strong> {{ task.end_date|date:"Y-m-d H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Function to sort table by priority
+        function sortByPriority() {
+            var table = document.getElementById("taskTable");
+            var switching = true;
+            var shouldSwitch, switchcount = 0;
+            var i, x, y;
+            var dir = "asc";
+
+            while (switching) {
+                switching = false;
+                var rows = table.rows;
+
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[5];
+                    y = rows[i + 1].getElementsByTagName("TD")[5];
+
+                    if (dir == "asc") {
+                        if (Number(x.innerHTML) > Number(y.innerHTML)) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (Number(x.innerHTML) < Number(y.innerHTML)) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+        // Function to update countdown timers and status
+        function updateCountdowns() {
+            {% for task in tasks %}
+                var startDate = new Date('{{ task.start_date|date:"Y-m-d H:i:s" }}');
+                var endDate = new Date('{{ task.end_date|date:"Y-m-d H:i:s" }}');
+                var now = new Date();
+
+                var countdownElement = document.getElementById('countdown_{{ task.id }}');
+                var statusElement = document.getElementById('status_{{ task.id }}');
+
+                if (now < startDate) {
+                    // Task hasn't started
+                    var timeToStart = startDate - now;
+                    countdownElement.innerHTML = formatTimeLeft(timeToStart);
+                    statusElement.innerHTML = "Pending";
+                    statusElement.className = "badge badge-warning";
+                } else if (now > endDate) {
+                    // Task has ended
+                    countdownElement.innerHTML = "Completed";
+                    statusElement.innerHTML = "Completed";
+                    statusElement.className = "badge badge-success";
+                } else {
+                    // Task is in progress
+                    var timeLeft = endDate - now;
+                    countdownElement.innerHTML = formatTimeLeft(timeLeft);
+                    statusElement.innerHTML = "In Progress";
+                    statusElement.className = "badge badge-primary";
+                }
+            {% endfor %}
+        }
+
+        // Function to format time left
+        function formatTimeLeft(ms) {
+            var days = Math.floor(ms / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+            return days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+        }
+
+        // Update countdowns every second
+        setInterval(updateCountdowns, 1000);
+        updateCountdowns(); // Initial update
+    </script>
+</body>
+</html>
