@@ -1,0 +1,47 @@
+
+.badge {
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+.btn-sm {
+    margin-right: 5px;
+}
+
+.card {
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table-responsive {
+    margin-top: 10px;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.navbar {
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-light {
+    background-color: #fff;
+    border-color: #fff;
+}
+
+.btn-light:hover {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+}
